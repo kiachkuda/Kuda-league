@@ -1,8 +1,9 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, Trophy } from "lucide-react";
+import { Menu, X, Trophy, LogOut, User as UserIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -16,6 +17,8 @@ const nav = [
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const path = useLocation().pathname;
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 glass-strong">
@@ -55,12 +58,45 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <Link
-            to="/register"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-hero px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow-primary hover:scale-[1.03] transition-transform"
-          >
-            Register Team
-          </Link>
+          {user ? (
+            <>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs">
+                <div className="h-6 w-6 rounded-full bg-gradient-hero flex items-center justify-center text-[10px] font-bold text-primary-foreground">
+                  {user.avatar}
+                </div>
+                <span className="font-medium">{user.username}</span>
+              </div>
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-hero px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow-primary hover:scale-[1.03] transition-transform"
+              >
+                Register Team
+              </Link>
+              <button
+                onClick={() => { logout(); navigate("/"); }}
+                className="p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-hero px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow-primary hover:scale-[1.03] transition-transform"
+              >
+                Get started
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -91,13 +127,40 @@ export function Navbar() {
                   {n.label}
                 </Link>
               ))}
-              <Link
-                to="/register"
-                onClick={() => setOpen(false)}
-                className="mt-2 inline-flex justify-center rounded-full bg-gradient-hero px-4 py-2 text-sm font-semibold text-primary-foreground"
-              >
-                Register Team
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    to="/register"
+                    onClick={() => setOpen(false)}
+                    className="mt-2 inline-flex justify-center rounded-full bg-gradient-hero px-4 py-2 text-sm font-semibold text-primary-foreground"
+                  >
+                    Register Team
+                  </Link>
+                  <button
+                    onClick={() => { setOpen(false); logout(); navigate("/"); }}
+                    className="mt-1 inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign out ({user.username})
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className="mt-2 inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium"
+                  >
+                    <UserIcon className="h-4 w-4" /> Sign in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setOpen(false)}
+                    className="mt-1 inline-flex justify-center rounded-full bg-gradient-hero px-4 py-2 text-sm font-semibold text-primary-foreground"
+                  >
+                    Get started
+                  </Link>
+                </>
+              )}
             </div>
           </motion.div>
         )}

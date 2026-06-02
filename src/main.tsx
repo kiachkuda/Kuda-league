@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/lib/auth-context";
+import { ProtectedRoute } from "@/components/site/ProtectedRoute";
 
 import "./styles.css";
 
@@ -15,16 +17,20 @@ import Standings from "./routes/standings";
 import Teams from "./routes/teams";
 import TeamDetail from "./routes/team-detail";
 import NotFound from "./routes/not-found";
+import Login from "./routes/login";
+import Signup from "./routes/signup";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
   { path: "/about", element: <About /> },
   { path: "/matches", element: <Matches /> },
-  { path: "/register", element: <Register /> },
+  { path: "/register", element: <ProtectedRoute><Register /></ProtectedRoute> },
   { path: "/seasons", element: <Seasons /> },
   { path: "/standings", element: <Standings /> },
   { path: "/teams", element: <Teams /> },
   { path: "/teams/:id", element: <TeamDetail /> },
+  { path: "/login", element: <Login /> },
+  { path: "/signup", element: <Signup /> },
   { path: "*", element: <NotFound /> },
 ]);
 
@@ -33,8 +39,10 @@ const queryClient = new QueryClient();
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster />
+      <AuthProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   </React.StrictMode>,
 );
