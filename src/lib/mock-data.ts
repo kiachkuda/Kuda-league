@@ -94,3 +94,70 @@ export const getTeam = (id: string) => teams.find(t => t.id === id)!;
 export const standings = [...teams]
   .map(t => ({ ...t, points: t.wins * 3 + t.draws, gd: t.gf - t.ga }))
   .sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf);
+
+export type UserRole = "fan" | "captain" | "admin";
+
+export interface UserNotificationPrefs {
+  email: boolean;
+  push: boolean;
+  matchAlerts: boolean;
+  newsletter: boolean;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  fullName: string;
+  avatar: string;
+  role: UserRole;
+  favoriteTeamId?: string;
+  teamsRegistered: string[];
+  predictionsMade: number;
+  predictionAccuracy: number;
+  fanLevel: number;
+  bio: string;
+  location: string;
+  verified: boolean;
+  joinedAt: string;
+  notifications: UserNotificationPrefs;
+}
+
+export const mockUsers: User[] = [
+  {
+    id: "u1",
+    email: "demo@apexleague.gg",
+    username: "demo",
+    fullName: "Demo Fan",
+    avatar: "DF",
+    role: "fan",
+    favoriteTeamId: "t1",
+    teamsRegistered: [],
+    predictionsMade: 42,
+    predictionAccuracy: 68,
+    fanLevel: 5,
+    bio: "Lifelong supporter. Football tactics nerd.",
+    location: "Lisbon, PT",
+    verified: true,
+    joinedAt: "2025-08-12T10:00:00Z",
+    notifications: { email: true, push: true, matchAlerts: true, newsletter: false },
+  },
+  {
+    id: "u2",
+    email: "marcus@phoenix.gg",
+    username: "marcusvale",
+    fullName: "Marcus Vale",
+    avatar: "MV",
+    role: "captain",
+    favoriteTeamId: "t1",
+    teamsRegistered: ["t1"],
+    predictionsMade: 12,
+    predictionAccuracy: 75,
+    fanLevel: 8,
+    bio: "Captain of Phoenix Vanguard. Striker.",
+    location: "Madrid, ES",
+    verified: true,
+    joinedAt: "2024-02-01T12:00:00Z",
+    notifications: { email: true, push: true, matchAlerts: true, newsletter: true },
+  },
+];
