@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, createElement, ReactNode } from "react";
-import { User, mockUsers } from "./mock-data";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { User, mockUsers, teams } from "./mock-data";
 
 interface StoredUser extends User {
   password: string;
@@ -16,12 +16,14 @@ interface SignupData {
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  fanCounts: Record<string, number>;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   signup: (data: SignupData) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
+  setFavoriteTeam: (teamId: string | undefined) => void;
 }
 
-export const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<AuthContextValue | null>(null);
 
 const USERS_KEY = "apex.users";
 const SESSION_KEY = "apex.session";
@@ -40,16 +42,37 @@ function saveUsers(users: StoredUser[]) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
+function computeFanCounts(users: StoredUser[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const t of teams) counts[t.id] = t.baseFans;
+  for (const u of users) {
+    if (u.favoriteTeamId && counts[u.favoriteTeamId] != null) {
+      counts[u.favoriteTeamId] += 1;
+    }
+  }
+  return counts;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fanCounts, setFanCounts] = useState<Record<string, number>>(() => {
+    const base: Record<string, number> = {};
+    for (const t of teams) base[t.id] = t.baseFans;
+    return base;
+  });
+
+  const refreshFans = useCallback((users?: StoredUser[]) => {
+    setFanCounts(computeFanCounts(users ?? loadUsers()));
+  }, []);
 
   useEffect(() => {
-    loadUsers();
+    const users = loadUsers();
+    refreshFans(users);
     try {
       const sid = localStorage.getItem(SESSION_KEY);
       if (sid) {
-        const u = loadUsers().find(x => x.id === sid);
+        const u = users.find(x => x.id === sid);
         if (u) {
           const { password: _p, ...safe } = u;
           setUser(safe);
@@ -57,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {}
     setLoading(false);
-  }, []);
+  }, [refreshFans]);
 
   const login: AuthContextValue["login"] = async (email, password) => {
     const users = loadUsers();
@@ -98,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     const next = [...users, newUser];
     saveUsers(next);
+    refreshFans(next);
     localStorage.setItem(SESSION_KEY, newUser.id);
     const { password: _p, ...safe } = newUser;
     setUser(safe);
@@ -109,8 +133,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const setFavoriteTeam: AuthContextValue["setFavoriteTeam"] = (teamId) => {
+    if (!user) return;
+    const users = loadUsers();
+    const idx = users.findIndex(x => x.id === user.id);
+    if (idx === -1) return;
+    users[idx] = { ...users[idx], favoriteTeamId: teamId };
+    saveUsers(users);
+    refreshFans(users);
+    setUser({ ...user, favoriteTeamId: teamId });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, fanCounts, login, signup, logout, setFavoriteTeam }}>
       {children}
     </AuthContext.Provider>
   );

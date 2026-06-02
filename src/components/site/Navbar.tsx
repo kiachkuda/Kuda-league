@@ -11,6 +11,7 @@ const nav = [
   { to: "/teams", label: "Teams" },
   { to: "/standings", label: "Standings" },
   { to: "/seasons", label: "Seasons" },
+  { to: "/fans", label: "Fans" },
   { to: "/about", label: "About" },
 ];
 

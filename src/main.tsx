@@ -19,6 +19,7 @@ import TeamDetail from "./routes/team-detail";
 import NotFound from "./routes/not-found";
 import Login from "./routes/login";
 import Signup from "./routes/signup";
+import Fans from "./routes/fans";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
   { path: "/standings", element: <Standings /> },
   { path: "/teams", element: <Teams /> },
   { path: "/teams/:id", element: <TeamDetail /> },
+  { path: "/fans", element: <Fans /> },
   { path: "/login", element: <Login /> },
   { path: "/signup", element: <Signup /> },
   { path: "*", element: <NotFound /> },
